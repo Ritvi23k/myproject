@@ -1,0 +1,7 @@
+gpt2-env/
+__pycache__/
+*.pyc
+*.pt
+log/
+data/
+input.txt

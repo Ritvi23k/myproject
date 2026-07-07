@@ -18,7 +18,7 @@ class CausalSelfAttention(nn.Module):
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd)
-        self.c_proj.NANOGPT_SCALE_INIT = 1
+        self.c_proj.NANOGPT_SCALE_INIT = 1 # type: ignore
         # regularization
         self.n_head = config.n_head
         self.n_embd = config.n_embd
@@ -46,7 +46,7 @@ class MLP(nn.Module):
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd)
         self.gelu    = nn.GELU(approximate='tanh')
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd)
-        self.c_proj.NANOGPT_SCALE_INIT = 1
+        self.c_proj.NANOGPT_SCALE_INIT = 1 # type: ignore
 
     def forward(self, x):
         x = self.c_fc(x)
@@ -91,7 +91,7 @@ class GPT(nn.Module):
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
         # weight sharing scheme
-        self.transformer.wte.weight = self.lm_head.weight
+        self.transformer.wte.weight = self.lm_head.weight # type: ignore
 
         # init params
         self.apply(self._init_weights)
@@ -113,14 +113,14 @@ class GPT(nn.Module):
         assert T <= self.config.block_size, f"Cannot forward sequence of length {T}, block size is only {self.config.block_size}"
         # forward the token and posisition embeddings
         pos = torch.arange(0, T, dtype=torch.long, device=idx.device) # shape (T)
-        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (T, n_embd)
-        tok_emb = self.transformer.wte(idx) # token embeddings of shape (B, T, n_embd)
+        pos_emb = self.transformer.wpe(pos) # type: ignore # position embeddings of shape (T, n_embd)
+        tok_emb = self.transformer.wte(idx) # type: ignore # token embeddings of shape (B, T, n_embd)
         x = tok_emb + pos_emb
         # forward the blocks of the transformer
-        for block in self.transformer.h:
+        for block in self.transformer.h: # type: ignore
             x = block(x)
         # forward the final layernorm and the classifier
-        x = self.transformer.ln_f(x)
+        x = self.transformer.ln_f(x) # type: ignore
         logits = self.lm_head(x) # (B, T, vocab_size)
         loss = None
         if targets is not None:
@@ -369,7 +369,7 @@ optimizer = raw_model.configure_optimizers(weight_decay=0.1, learning_rate=6e-4,
 # create the log directory we will write checkpoints to and log to
 log_dir = "log"
 os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, f"log.txt")
+log_file = os.path.join(log_dir, "log.txt")
 with open(log_file, "w") as f: # open for writing to clear the file
     pass
 
